@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiffin Service - Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-2xl font-bold text-center mb-4">Tiffin Service Manager</h1>
+
+        <div class="bg-white p-4 rounded shadow-md">
+            <h2 class="text-xl font-semibold mb-2">Add Tiffin Date</h2>
+            <input type="date" id="tiffinDate" class="border p-2 mb-4 w-full">
+            <div class="mb-4">
+                <label class="inline-flex items-center">
+                    <input type="checkbox" id="lunch" class="form-checkbox">
+                    <span class="ml-2">Lunch</span>
+                </label>
+                <label class="inline-flex items-center ml-4">
+                    <input type="checkbox" id="dinner" class="form-checkbox">
+                    <span class="ml-2">Dinner</span>
+                </label>
+            </div>
+            <button onclick="addDate()" class="bg-blue-500 text-white py-2 px-4 rounded">Add Date</button>
+        </div>
+
+        <div class="bg-white p-4 rounded shadow-md mt-4">
+            <h2 class="text-xl font-semibold mb-2">Tiffin Dates</h2>
+            <ul id="dateList" class="list-disc list-inside"></ul>
+            <h2 class="text-xl font-semibold mt-4">Total Cost</h2>
+            <p id="totalCost" class="text-lg">Total: 0 Rupees</p>
+        </div>
+    </div>
+
+    <script>
+        const pricePerMeal = 40;
+        let currentUser = localStorage.getItem('currentUser');
+        if (!currentUser) {
+            window.location.href = 'index.html';
+        }
+
+        const users = JSON.parse(localStorage.getItem('users')) || {};
+        const userRecords = users[currentUser].records || [];
+
+        function addDate() {
+            const dateInput = document.getElementById('tiffinDate').value;
+            const lunch = document.getElementById('lunch').checked;
+            const dinner = document.getElementById('dinner').checked;
+
+            if (dateInput && (lunch || dinner)) {
+                let dateRecord = userRecords.find(record => record.date === dateInput);
+                if (!dateRecord) {
+                    dateRecord = { date: dateInput, lunch: false, dinner: false };
+                    userRecords.push(dateRecord);
+                }
+                if (lunch) dateRecord.lunch = true;
+                if (dinner) dateRecord.dinner = true;
+
+                renderDates();
+                calculateTotal();
+                saveRecords();
+            }
+        }
+
+        function renderDates() {
+            const dateListElement = document.getElementById('dateList');
+            dateListElement.innerHTML = '';
+            userRecords.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = `${item.date} - ${item.lunch ? 'Lunch' : ''} ${item.dinner ? 'Dinner' : ''}`;
+                dateListElement.appendChild(li);
+            });
+        }
+
+        function calculateTotal() {
+            let totalCost = 0;
+            userRecords.forEach(item => {
+                if (item.lunch) totalCost += pricePerMeal;
+                if (item.dinner) totalCost += pricePerMeal;
+            });
+            document.getElementById('totalCost').textContent = `Total: ${totalCost} Rupees`;
+        }
+
+        function saveRecords() {
+            users[currentUser].records = userRecords;
+            localStorage.setItem('users', JSON.stringify(users));
+        }
+
+        window.onload = function() {
+            renderDates();
+            calculateTotal();
+        };
+    </script>
+</body>
+</html>
+ 
